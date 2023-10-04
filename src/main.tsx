@@ -1,6 +1,7 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
-import App from "./App.tsx";
+import App from "./Pages/App.tsx";
+import DailyHistory from "./Pages/DailyHistory.tsx";
 import "./index.css";
 import {
   ChakraProvider,
@@ -12,8 +13,13 @@ import ErrorPage from "./Pages/ErrorPage.tsx";
 
 const router = createHashRouter([
   {
-    path: "/*",
+    path: "/",
     element: <App />,
+    errorElement: <ErrorPage />,
+  },
+  {
+    path: "/daily-history",
+    element: <DailyHistory />,
     errorElement: <ErrorPage />,
   },
 ]);

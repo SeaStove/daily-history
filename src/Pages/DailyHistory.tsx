@@ -33,6 +33,8 @@ import {
 
 import { useEffect, useRef, useState, useCallback, Fragment } from "react";
 import axios from "axios";
+import useDocumentTitle from "../Hooks/useDocumentTitle";
+import NavBar from "../Components/NavBar";
 interface Event {
   year: string;
   month: string;
@@ -70,7 +72,8 @@ function EventBox({
   );
 }
 
-function App() {
+function DailyHistory() {
+  useDocumentTitle("Daily History");
   const MIN_YEAR = 1;
   const MAX_YEAR = 2023;
   // const BASEYEAR = Math.floor((MAXYEAR + MINYEAR) / 2);
@@ -201,6 +204,7 @@ function App() {
 
   return (
     <>
+      <NavBar />
       <Modal isOpen={isOpen} onClose={onClose}>
         <ModalOverlay />
         <ModalContent bg="brand.100" zIndex={3}>
@@ -434,4 +438,4 @@ function App() {
   }
 }
 
-export default App;
+export default DailyHistory;
