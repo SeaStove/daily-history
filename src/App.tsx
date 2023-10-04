@@ -7,6 +7,9 @@ import {
   Tooltip,
   Box,
   Button,
+  HStack,
+  PinInput,
+  PinInputField,
   Heading,
   VStack,
   Modal,
@@ -20,10 +23,37 @@ import {
   Text,
   Spinner,
   Link,
+  Flex,
+  Container,
+  AbsoluteCenter,
+  Input,
+  useNumberInput,
+  IconButton,
+  InputLeftAddon,
+  InputGroup,
+  useToast,
+  Form,
+  FormControl,
+  FormLabel,
+  FormErrorMessage,
+  FormHelperText,
 } from "@chakra-ui/react";
-import { ExternalLinkIcon } from "@chakra-ui/icons";
+import {
+  ArrowDownIcon,
+  ArrowUpIcon,
+  ExternalLinkIcon,
+  InfoOutlineIcon,
+  RepeatIcon,
+} from "@chakra-ui/icons";
 
-import { useEffect, useRef, useState } from "react";
+import {
+  Fragment,
+  useEffect,
+  useRef,
+  useState,
+  useMemo,
+  useCallback,
+} from "react";
 import axios from "axios";
 interface Event {
   year: string;
@@ -43,7 +73,7 @@ function EventBox({ event, ...rest }: { event: string }) {
       bg="brand.300"
       color="gray.600"
       fontWeight={600}
-      w={"500px"}
+      width="100%"
       {...rest}
     >
       {event}
@@ -54,26 +84,38 @@ function EventBox({ event, ...rest }: { event: string }) {
 function App() {
   const MINYEAR = 1;
   const MAXYEAR = 2023;
-  const BASEYEAR = Math.floor((MAXYEAR + MINYEAR) / 2);
+  // const BASEYEAR = Math.floor((MAXYEAR + MINYEAR) / 2);
+  const BASEYEAR = 1776;
+  // const BASEYEAR = "";
   const [yearToGuess, setYearToGuess] = useState<number | null>();
-  const [year, setYear] = useState(BASEYEAR);
+  const [year, setYear] = useState<string>(BASEYEAR.toString());
   const [events, setEvents] = useState<Event[]>([]);
   const [misses, setMisses] = useState<number[]>([]);
   const [gameOver, setGameOver] = useState(false);
+  const [correctDigits, setCorrectDigits] = useState([
+    false,
+    false,
+    false,
+    false,
+  ]);
   const [won, setWon] = useState(false);
   const { onOpen, onClose, isOpen } = useDisclosure();
+  const toast = useToast();
 
   function onSubmit() {
-    if (year === yearToGuess) {
-      setWon(true);
-      setGameOver(true);
-    } else {
-      if (misses.length >= 4) {
+    if (year) {
+      if (parseInt(year) === yearToGuess) {
+        setWon(true);
         setGameOver(true);
       } else {
-        setMisses((misses) => {
-          return [...misses, year];
-        });
+        if (misses.length >= 4) {
+          setGameOver(true);
+        } else {
+          checkDigits();
+          setMisses((misses) => {
+            return [...misses, parseInt(year)];
+          });
+        }
       }
     }
   }
@@ -84,13 +126,33 @@ function App() {
     setGameOver(false);
     setEvents([]);
     getRandomYear();
-    setYear(BASEYEAR);
+    setYear(BASEYEAR.toString());
+    onClose();
   }
 
-  function getRandomYear() {
+  async function getRandomYear() {
     const randomYear =
       Math.floor(Math.random() * (MAXYEAR - MINYEAR + 1)) + MINYEAR;
-    setYearToGuess(randomYear);
+
+    console.log(randomYear);
+
+    const response = await axios.get(
+      `https://api.api-ninjas.com/v1/historicalevents?year=${randomYear}`,
+      {
+        headers: { "X-Api-Key": import.meta.env.VITE_API_KEY },
+      }
+    );
+
+    if (response?.data) {
+      if (response.data.length > 5) {
+        setYearToGuess(randomYear);
+        setEvents(response.data);
+      } else {
+        getRandomYear();
+      }
+    } else {
+      console.error("Couldn't retrieve data from API.");
+    }
   }
 
   useEffect(() => {
@@ -107,29 +169,48 @@ function App() {
     }
   }, []);
 
-  useEffect(() => {
-    async function getEvents() {
-      const response = await axios.get(
-        `https://api.api-ninjas.com/v1/historicalevents?year=${yearToGuess}`,
-        {
-          headers: { "X-Api-Key": import.meta.env.VITE_API_KEY },
-        }
+  function paddedDigits(num: string) {
+    console.log(num);
+    let formattedYear = num;
+    const targetLength = 4;
+    if (formattedYear.length < targetLength) {
+      const padding = new Array(targetLength - formattedYear.length + 1).join(
+        "0"
       );
+      formattedYear = padding + formattedYear;
+    }
+    return formattedYear.split("").map(Number);
+  }
 
-      if (response?.data) {
-        if (response.data.length > 5) {
-          setEvents(response.data);
+  const yearType: { [key: number]: string } = {
+    0: "Millenium",
+    1: "Century",
+    2: "Decade",
+    3: "Digit",
+  };
+
+  const checkDigits = useCallback(() => {
+    if (year && yearToGuess) {
+      const guessDigits = paddedDigits(year);
+      const answerDigits = paddedDigits(yearToGuess?.toString());
+      let newCorrectDigits = [...correctDigits];
+
+      for (let index = 0; index < 4; index++) {
+        if (guessDigits[index] === answerDigits[index]) {
+          newCorrectDigits[index] = true;
+          toast({
+            title: `${yearType[index]} is correct!`,
+            status: "success",
+            duration: 9000,
+            isClosable: true,
+          });
         } else {
-          getRandomYear();
+          break;
         }
-      } else {
-        console.error("Couldn't retrieve data from API.");
       }
+      setCorrectDigits(newCorrectDigits);
     }
-    if (yearToGuess) {
-      getEvents();
-    }
-  }, [yearToGuess]);
+  }, [year, yearToGuess]);
 
   return (
     <>
@@ -154,7 +235,6 @@ function App() {
               <Link
                 href={`https://en.wikipedia.org/wiki/AD_${yearToGuess}`}
                 textDecoration={"underline"}
-                color="gray.100"
                 isExternal
                 textAlign={"center"}
               >
@@ -164,10 +244,22 @@ function App() {
             </VStack>
           </ModalBody>
 
-          <ModalFooter>
-            <Button bg="brand.400" color="white" mr={3} onClick={onClose}>
-              Close
-            </Button>
+          <ModalFooter w="100%">
+            <Center w="100%">
+              <Button
+                aria-label="New Game"
+                size="lg"
+                bg="brand.400"
+                color="white"
+                ml="1rem"
+                rightIcon={<RepeatIcon />}
+                onClick={newGame}
+                autoFocus
+                type="submit"
+              >
+                New Game
+              </Button>
+            </Center>
           </ModalFooter>
         </ModalContent>
       </Modal>
@@ -183,87 +275,186 @@ function App() {
         p="2rem"
       >
         <Center>
-          <VStack w="500px" my="5rem">
-            {events.length > 0 ? (
-              events
-                .slice(0, misses.length + 1)
-                .map((event: Event, index) => (
-                  <EventBox event={event.event} key={index} />
-                ))
-            ) : (
-              <Spinner color="brand.300" />
-            )}
-            <Heading
-              color="white"
-              py="2rem"
-              position={"sticky"}
-              bg="brand.100"
-              textAlign={"center"}
-            >
-              Which year did these events happen? {misses.length + 1} / 5
-            </Heading>
-            <Slider
-              aria-label="slider-ex-1"
-              onChange={(val) => setYear(val)}
-              value={year}
-              min={MINYEAR}
-              max={MAXYEAR}
-              mb="5rem"
-              mt="4rem"
-            >
-              <SliderMark
-                value={MINYEAR}
-                mt="1"
-                ml="-2.5"
-                fontSize="lg"
+          {events.length > 0 ? (
+            <VStack w="500px" my="5rem">
+              {events.slice(0, misses.length + 1).map((event: Event, index) => (
+                <EventBox event={event.event} key={index} />
+              ))}
+              <Heading
                 color="white"
-              >
-                {MINYEAR}
-              </SliderMark>
-              <SliderMark
-                value={MAXYEAR}
-                mt="1"
-                ml="-2.5"
-                fontSize="lg"
-                color="white"
-              >
-                {MAXYEAR}
-              </SliderMark>
-
-              <Tooltip
-                // hasArrow
+                py="2rem"
+                position={"sticky"}
                 bg="brand.100"
-                color="white"
-                placement="top"
-                isOpen
-                fontSize="2rem"
-                label={`${year}`}
+                textAlign={"center"}
               >
-                <SliderThumb />
-              </Tooltip>
-              <SliderTrack bg="brand.400" />
-              <SliderThumb bg="brand.200" />
-            </Slider>
-            {gameOver ? (
-              <Button size="lg" bg="brand.400" color="white" onClick={newGame}>
-                New Game
-              </Button>
-            ) : (
-              <Button
-                size="lg"
-                bg="brand.400"
-                color="white"
-                onClick={onSubmit}
-                disabled={events.length === 0}
+                Which year did these events happen? {misses.length + 1} / 5
+              </Heading>
+              <form
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  gameOver ? onOpen() : onSubmit();
+                }}
               >
-                Submit
-              </Button>
-            )}
-          </VStack>
+                {gameOver ? (
+                  <Flex>
+                    <Button
+                      aria-label="New Game"
+                      size="lg"
+                      bg="brand.400"
+                      color="white"
+                      ml="1rem"
+                      rightIcon={<RepeatIcon />}
+                      onClick={newGame}
+                    >
+                      New Game
+                    </Button>
+                    <Button
+                      aria-label="View Details"
+                      size="lg"
+                      bg="brand.400"
+                      color="white"
+                      ml="1rem"
+                      rightIcon={<InfoOutlineIcon />}
+                      type="submit"
+                    >
+                      View Details
+                    </Button>
+                  </Flex>
+                ) : (
+                  <Flex>
+                    {InputYearPicker()}
+                    <Button
+                      size="lg"
+                      bg="brand.400"
+                      color="white"
+                      ml="1rem"
+                      disabled={events.length === 0 || !year}
+                      type="submit"
+                    >
+                      Guess
+                    </Button>
+                  </Flex>
+                )}
+              </form>
+            </VStack>
+          ) : (
+            <AbsoluteCenter>
+              <Spinner color="brand.300" />
+            </AbsoluteCenter>
+          )}
         </Center>
       </Box>
     </>
   );
+
+  function SliderYearPicker() {
+    return (
+      <Slider
+        aria-label="slider-ex-1"
+        // onChange={(val) => setYear(val)}
+        // value={year}
+        min={MINYEAR}
+        max={MAXYEAR}
+        mb="5rem"
+        mt="4rem"
+      >
+        <SliderMark
+          value={MINYEAR}
+          mt="1"
+          ml="-2.5"
+          fontSize="lg"
+          color="white"
+        >
+          {MINYEAR}
+        </SliderMark>
+        <SliderMark
+          value={MAXYEAR}
+          mt="1"
+          ml="-2.5"
+          fontSize="lg"
+          color="white"
+        >
+          {MAXYEAR}
+        </SliderMark>
+
+        <Tooltip
+          // hasArrow
+          bg="brand.100"
+          color="white"
+          placement="top"
+          isOpen
+          fontSize="2rem"
+          label={`${year}`}
+        >
+          <SliderThumb />
+        </Tooltip>
+        <SliderTrack bg="brand.400" />
+        <SliderThumb bg="brand.200" />
+      </Slider>
+    );
+  }
+
+  function PinYearPicker() {
+    return (
+      <HStack>
+        <PinInput
+          isDisabled={gameOver}
+          size="lg"
+          value={year}
+          onChange={(val) => {
+            setYear(val);
+          }}
+          // otp
+        >
+          {[...Array(4)].map((_, index) => {
+            console.log(yearToGuess, index, correctDigits[index]);
+            return <PinInputField key={index} />;
+          })}
+        </PinInput>
+      </HStack>
+    );
+  }
+
+  function InputYearPicker() {
+    return (
+      <HStack>
+        <IconButton
+          aria-label="Decrease Year"
+          onClick={() => {
+            setYear((year) => {
+              const updatedYear = parseInt(year) - 1;
+              return updatedYear.toString();
+            });
+          }}
+          icon={<ArrowDownIcon />}
+        />
+        <Input
+          size="lg"
+          maxLength={4}
+          isRequired
+          value={year}
+          type="number"
+          min={MINYEAR}
+          max={MAXYEAR}
+          htmlSize={4}
+          onChange={(event) => {
+            if (event.target.value.length <= 4) setYear(event.target.value);
+          }}
+          textAlign={"center"}
+        />
+        <IconButton
+          aria-label="Increase Year"
+          icon={<ArrowUpIcon />}
+          onClick={() => {
+            setYear((year) => {
+              const updatedYear = parseInt(year) + 1;
+              return updatedYear.toString();
+            });
+          }}
+        />
+      </HStack>
+    );
+  }
 }
 
 export default App;
