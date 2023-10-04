@@ -1,15 +1,8 @@
 import {
   Center,
-  Slider,
-  SliderTrack,
-  SliderMark,
-  SliderThumb,
-  Tooltip,
   Box,
   Button,
   HStack,
-  PinInput,
-  PinInputField,
   Heading,
   VStack,
   Modal,
@@ -24,19 +17,10 @@ import {
   Spinner,
   Link,
   Flex,
-  Container,
   AbsoluteCenter,
   Input,
-  useNumberInput,
   IconButton,
-  InputLeftAddon,
-  InputGroup,
   useToast,
-  Form,
-  FormControl,
-  FormLabel,
-  FormErrorMessage,
-  FormHelperText,
 } from "@chakra-ui/react";
 import {
   ArrowDownIcon,
@@ -46,14 +30,7 @@ import {
   RepeatIcon,
 } from "@chakra-ui/icons";
 
-import {
-  Fragment,
-  useEffect,
-  useRef,
-  useState,
-  useMemo,
-  useCallback,
-} from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import axios from "axios";
 interface Event {
   year: string;
@@ -347,73 +324,73 @@ function App() {
     </>
   );
 
-  function SliderYearPicker() {
-    return (
-      <Slider
-        aria-label="slider-ex-1"
-        // onChange={(val) => setYear(val)}
-        // value={year}
-        min={MINYEAR}
-        max={MAXYEAR}
-        mb="5rem"
-        mt="4rem"
-      >
-        <SliderMark
-          value={MINYEAR}
-          mt="1"
-          ml="-2.5"
-          fontSize="lg"
-          color="white"
-        >
-          {MINYEAR}
-        </SliderMark>
-        <SliderMark
-          value={MAXYEAR}
-          mt="1"
-          ml="-2.5"
-          fontSize="lg"
-          color="white"
-        >
-          {MAXYEAR}
-        </SliderMark>
+  // function SliderYearPicker() {
+  //   return (
+  //     <Slider
+  //       aria-label="slider-ex-1"
+  //       // onChange={(val) => setYear(val)}
+  //       // value={year}
+  //       min={MINYEAR}
+  //       max={MAXYEAR}
+  //       mb="5rem"
+  //       mt="4rem"
+  //     >
+  //       <SliderMark
+  //         value={MINYEAR}
+  //         mt="1"
+  //         ml="-2.5"
+  //         fontSize="lg"
+  //         color="white"
+  //       >
+  //         {MINYEAR}
+  //       </SliderMark>
+  //       <SliderMark
+  //         value={MAXYEAR}
+  //         mt="1"
+  //         ml="-2.5"
+  //         fontSize="lg"
+  //         color="white"
+  //       >
+  //         {MAXYEAR}
+  //       </SliderMark>
 
-        <Tooltip
-          // hasArrow
-          bg="brand.100"
-          color="white"
-          placement="top"
-          isOpen
-          fontSize="2rem"
-          label={`${year}`}
-        >
-          <SliderThumb />
-        </Tooltip>
-        <SliderTrack bg="brand.400" />
-        <SliderThumb bg="brand.200" />
-      </Slider>
-    );
-  }
+  //       <Tooltip
+  //         // hasArrow
+  //         bg="brand.100"
+  //         color="white"
+  //         placement="top"
+  //         isOpen
+  //         fontSize="2rem"
+  //         label={`${year}`}
+  //       >
+  //         <SliderThumb />
+  //       </Tooltip>
+  //       <SliderTrack bg="brand.400" />
+  //       <SliderThumb bg="brand.200" />
+  //     </Slider>
+  //   );
+  // }
 
-  function PinYearPicker() {
-    return (
-      <HStack>
-        <PinInput
-          isDisabled={gameOver}
-          size="lg"
-          value={year}
-          onChange={(val) => {
-            setYear(val);
-          }}
-          // otp
-        >
-          {[...Array(4)].map((_, index) => {
-            console.log(yearToGuess, index, correctDigits[index]);
-            return <PinInputField key={index} />;
-          })}
-        </PinInput>
-      </HStack>
-    );
-  }
+  // function PinYearPicker() {
+  //   return (
+  //     <HStack>
+  //       <PinInput
+  //         isDisabled={gameOver}
+  //         size="lg"
+  //         value={year}
+  //         onChange={(val) => {
+  //           setYear(val);
+  //         }}
+  //         // otp
+  //       >
+  //         {[...Array(4)].map((_, index) => {
+  //           console.log(yearToGuess, index, correctDigits[index]);
+  //           return <PinInputField key={index} />;
+  //         })}
+  //       </PinInput>
+  //     </HStack>
+  //   );
+  // }
 
   function InputYearPicker() {
     return (
