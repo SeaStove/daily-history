@@ -8,7 +8,7 @@ const NavBar = () => {
       p={4}
       alignItems="center"
       justifyContent={"center"}
-      templateColumns="repeat(3, 1fr)"
+      templateColumns="10px 1fr 10px"
     >
       <Box gridColumn="1">
         <Link href="/" variant="outline">
