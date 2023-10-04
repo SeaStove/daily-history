@@ -59,29 +59,25 @@ function EventBox({ event, ...rest }: { event: string }) {
 }
 
 function App() {
-  const MINYEAR = 1;
-  const MAXYEAR = 2023;
+  const MIN_YEAR = 1;
+  const MAX_YEAR = 2023;
   // const BASEYEAR = Math.floor((MAXYEAR + MINYEAR) / 2);
-  const BASEYEAR = 1776;
+  const BASE_YEAR = 2023;
+  const BASE_CORRECT_DIGITS = [false, false, false, false];
   // const BASEYEAR = "";
-  const [yearToGuess, setYearToGuess] = useState<number | null>();
-  const [year, setYear] = useState<string>(BASEYEAR.toString());
+  const [yearToGuess, setYearToGuess] = useState<string | null>();
+  const [year, setYear] = useState<string>(BASE_YEAR.toString());
   const [events, setEvents] = useState<Event[]>([]);
   const [misses, setMisses] = useState<number[]>([]);
   const [gameOver, setGameOver] = useState(false);
-  const [correctDigits, setCorrectDigits] = useState([
-    false,
-    false,
-    false,
-    false,
-  ]);
+  const [correctDigits, setCorrectDigits] = useState(BASE_CORRECT_DIGITS);
   const [won, setWon] = useState(false);
   const { onOpen, onClose, isOpen } = useDisclosure();
   const toast = useToast();
 
   function onSubmit() {
     if (year) {
-      if (parseInt(year) === yearToGuess) {
+      if (year === yearToGuess) {
         setWon(true);
         setGameOver(true);
       } else {
@@ -103,13 +99,14 @@ function App() {
     setGameOver(false);
     setEvents([]);
     getRandomYear();
-    setYear(BASEYEAR.toString());
+    setYear(BASE_YEAR.toString());
+    setCorrectDigits([]);
     onClose();
   }
 
   async function getRandomYear() {
     const randomYear =
-      Math.floor(Math.random() * (MAXYEAR - MINYEAR + 1)) + MINYEAR;
+      Math.floor(Math.random() * (MAX_YEAR - MIN_YEAR + 1)) + MIN_YEAR;
 
     console.log(randomYear);
 
@@ -122,7 +119,7 @@ function App() {
 
     if (response?.data) {
       if (response.data.length > 5) {
-        setYearToGuess(randomYear);
+        setYearToGuess(randomYear.toString());
         setEvents(response.data);
       } else {
         getRandomYear();
@@ -168,19 +165,23 @@ function App() {
 
   const checkDigits = useCallback(() => {
     if (year && yearToGuess) {
+      console.log(year, yearToGuess);
       const guessDigits = paddedDigits(year);
-      const answerDigits = paddedDigits(yearToGuess?.toString());
+      const answerDigits = paddedDigits(yearToGuess);
       let newCorrectDigits = [...correctDigits];
 
       for (let index = 0; index < 4; index++) {
         if (guessDigits[index] === answerDigits[index]) {
-          newCorrectDigits[index] = true;
-          toast({
-            title: `${yearType[index]} is correct!`,
-            status: "success",
-            duration: 9000,
-            isClosable: true,
-          });
+          if (newCorrectDigits[index] === false) {
+            newCorrectDigits[index] = true;
+            toast.closeAll();
+            toast({
+              title: `${yearType[index]} is correct!`,
+              status: "success",
+              duration: 1000,
+              isClosable: true,
+            });
+          }
         } else {
           break;
         }
@@ -231,7 +232,6 @@ function App() {
                 ml="1rem"
                 rightIcon={<RepeatIcon />}
                 onClick={newGame}
-                autoFocus
                 type="submit"
               >
                 New Game
@@ -266,6 +266,13 @@ function App() {
               >
                 Which year did these events happen? {misses.length + 1} / 5
               </Heading>
+              <Text fontSize="2xl">
+                {[...Array(4)].map((_, index) => {
+                  return correctDigits[index] && yearToGuess
+                    ? yearToGuess[index]
+                    : "X";
+                })}
+              </Text>
               <form
                 onSubmit={(event) => {
                   event.preventDefault();
@@ -324,74 +331,6 @@ function App() {
     </>
   );
 
-  // function SliderYearPicker() {
-  //   return (
-  //     <Slider
-  //       aria-label="slider-ex-1"
-  //       // onChange={(val) => setYear(val)}
-  //       // value={year}
-  //       min={MINYEAR}
-  //       max={MAXYEAR}
-  //       mb="5rem"
-  //       mt="4rem"
-  //     >
-  //       <SliderMark
-  //         value={MINYEAR}
-  //         mt="1"
-  //         ml="-2.5"
-  //         fontSize="lg"
-  //         color="white"
-  //       >
-  //         {MINYEAR}
-  //       </SliderMark>
-  //       <SliderMark
-  //         value={MAXYEAR}
-  //         mt="1"
-  //         ml="-2.5"
-  //         fontSize="lg"
-  //         color="white"
-  //       >
-  //         {MAXYEAR}
-  //       </SliderMark>
-
-  //       <Tooltip
-  //         // hasArrow
-  //         bg="brand.100"
-  //         color="white"
-  //         placement="top"
-  //         isOpen
-  //         fontSize="2rem"
-  //         label={`${year}`}
-  //       >
-  //         <SliderThumb />
-  //       </Tooltip>
-  //       <SliderTrack bg="brand.400" />
-  //       <SliderThumb bg="brand.200" />
-  //     </Slider>
-  //   );
-  // }
-
-  // function PinYearPicker() {
-  //   return (
-  //     <HStack>
-  //       <PinInput
-  //         isDisabled={gameOver}
-  //         size="lg"
-  //         value={year}
-  //         onChange={(val) => {
-  //           setYear(val);
-  //         }}
-  //         // otp
-  //       >
-  //         {[...Array(4)].map((_, index) => {
-  //           console.log(yearToGuess, index, correctDigits[index]);
-  //           return <PinInputField key={index} />;
-  //         })}
-  //       </PinInput>
-  //     </HStack>
-  //   );
-  // }
-
   function InputYearPicker() {
     return (
       <HStack>
@@ -404,6 +343,7 @@ function App() {
             });
           }}
           icon={<ArrowDownIcon />}
+          isDisabled={parseInt(year) <= MIN_YEAR}
         />
         <Input
           size="lg"
@@ -411,8 +351,8 @@ function App() {
           isRequired
           value={year}
           type="number"
-          min={MINYEAR}
-          max={MAXYEAR}
+          min={MIN_YEAR}
+          max={MAX_YEAR}
           htmlSize={4}
           onChange={(event) => {
             if (event.target.value.length <= 4) setYear(event.target.value);
@@ -430,6 +370,7 @@ function App() {
               return updatedYear.toString();
             });
           }}
+          isDisabled={parseInt(year) >= MAX_YEAR}
         />
       </HStack>
     );
