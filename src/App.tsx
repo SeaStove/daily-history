@@ -417,6 +417,8 @@ function App() {
           onChange={(event) => {
             if (event.target.value.length <= 4) setYear(event.target.value);
           }}
+          pattern="[0-9]*"
+          inputMode="numeric"
           textAlign={"center"}
         />
         <IconButton
