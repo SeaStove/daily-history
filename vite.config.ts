@@ -9,5 +9,5 @@ export default defineConfig({
     // The QR code is cool but doesnt work with WSL2
     // qrcode()
   ],
-  base: "/daily-history/",
+  base: "/",
 });
