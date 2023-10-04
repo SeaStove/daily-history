@@ -1,5 +1,5 @@
 import {
-  AbsoluteCenter,
+  Center,
   Slider,
   SliderTrack,
   SliderMark,
@@ -19,7 +19,10 @@ import {
   useDisclosure,
   Text,
   Spinner,
+  Link,
 } from "@chakra-ui/react";
+import { ExternalLinkIcon } from "@chakra-ui/icons";
+
 import { useEffect, useRef, useState } from "react";
 import axios from "axios";
 interface Event {
@@ -49,8 +52,11 @@ function EventBox({ event, ...rest }: { event: string }) {
 }
 
 function App() {
+  const MINYEAR = 1;
+  const MAXYEAR = 2023;
+  const BASEYEAR = Math.floor((MAXYEAR + MINYEAR) / 2);
   const [yearToGuess, setYearToGuess] = useState<number | null>();
-  const [year, setYear] = useState(1800);
+  const [year, setYear] = useState(BASEYEAR);
   const [events, setEvents] = useState<Event[]>([]);
   const [misses, setMisses] = useState<number[]>([]);
   const [gameOver, setGameOver] = useState(false);
@@ -62,9 +68,13 @@ function App() {
       setWon(true);
       setGameOver(true);
     } else {
-      setMisses((misses) => {
-        return [...misses, year];
-      });
+      if (misses.length >= 4) {
+        setGameOver(true);
+      } else {
+        setMisses((misses) => {
+          return [...misses, year];
+        });
+      }
     }
   }
 
@@ -74,13 +84,12 @@ function App() {
     setGameOver(false);
     setEvents([]);
     getRandomYear();
-    setYear(1800);
+    setYear(BASEYEAR);
   }
 
   function getRandomYear() {
-    const min = 1600;
-    const max = 2023;
-    const randomYear = Math.floor(Math.random() * (max - min + 1)) + min;
+    const randomYear =
+      Math.floor(Math.random() * (MAXYEAR - MINYEAR + 1)) + MINYEAR;
     setYearToGuess(randomYear);
   }
 
@@ -97,12 +106,6 @@ function App() {
       gotYearRef.current = true;
     }
   }, []);
-
-  useEffect(() => {
-    if (misses.length >= 5) {
-      setGameOver(true);
-    }
-  }, [misses]);
 
   useEffect(() => {
     async function getEvents() {
@@ -148,6 +151,16 @@ function App() {
                 .map((event, index) => (
                   <EventBox event={event.event} key={index} />
                 ))}
+              <Link
+                href={`https://en.wikipedia.org/wiki/AD_${yearToGuess}`}
+                textDecoration={"underline"}
+                color="gray.100"
+                isExternal
+                textAlign={"center"}
+              >
+                To learn more, check out the wikipedia page for {yearToGuess}{" "}
+                A.D. <ExternalLinkIcon mx="2px" />
+              </Link>
             </VStack>
           </ModalBody>
 
@@ -158,19 +171,19 @@ function App() {
           </ModalFooter>
         </ModalContent>
       </Modal>
+
       <Box
         position="relative"
         minH="100vh"
+        maxH="100vh"
         h="100%"
         w="100vw"
         bg="brand.100"
         overflowX="hidden"
+        p="2rem"
       >
-        <AbsoluteCenter>
+        <Center>
           <VStack w="500px" my="5rem">
-            <Heading color="white" pb="2rem">
-              Which year was this?
-            </Heading>
             {events.length > 0 ? (
               events
                 .slice(0, misses.length + 1)
@@ -180,33 +193,41 @@ function App() {
             ) : (
               <Spinner color="brand.300" />
             )}
-
+            <Heading
+              color="white"
+              py="2rem"
+              position={"sticky"}
+              bg="brand.100"
+              textAlign={"center"}
+            >
+              Which year did these events happen? {misses.length + 1} / 5
+            </Heading>
             <Slider
               aria-label="slider-ex-1"
               onChange={(val) => setYear(val)}
               value={year}
-              min={1600}
-              max={2023}
+              min={MINYEAR}
+              max={MAXYEAR}
               mb="5rem"
               mt="4rem"
             >
               <SliderMark
-                value={1600}
+                value={MINYEAR}
                 mt="1"
                 ml="-2.5"
                 fontSize="lg"
                 color="white"
               >
-                1600
+                {MINYEAR}
               </SliderMark>
               <SliderMark
-                value={2023}
+                value={MAXYEAR}
                 mt="1"
                 ml="-2.5"
                 fontSize="lg"
                 color="white"
               >
-                2023
+                {MAXYEAR}
               </SliderMark>
 
               <Tooltip
@@ -221,7 +242,7 @@ function App() {
                 <SliderThumb />
               </Tooltip>
               <SliderTrack bg="brand.400" />
-              <SliderThumb bg="brand.100" />
+              <SliderThumb bg="brand.200" />
             </Slider>
             {gameOver ? (
               <Button size="lg" bg="brand.400" color="white" onClick={newGame}>
@@ -239,7 +260,7 @@ function App() {
               </Button>
             )}
           </VStack>
-        </AbsoluteCenter>
+        </Center>
       </Box>
     </>
   );
