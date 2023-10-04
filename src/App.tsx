@@ -53,7 +53,7 @@ function EventBox({
   return (
     <Box
       maxW="sm"
-      borderWidth="1px"
+      borderWidth="0"
       borderRadius="lg"
       overflow="hidden"
       p={4}
@@ -205,12 +205,16 @@ function App() {
         <ModalOverlay />
         <ModalContent bg="brand.100" zIndex={3}>
           <ModalHeader color="white">
-            {won ? "You Won!" : "You Lost!"}
+            <Center>
+              <Heading>{won ? "You Won!" : "You Lost!"}</Heading>
+            </Center>
           </ModalHeader>
           <ModalCloseButton />
           <ModalBody>
             <VStack>
-              <Heading color="white">The year was {yearToGuess}</Heading>
+              <Heading as="h2" size="lg" color="white">
+                The year was {yearToGuess}
+              </Heading>
               {events.length > misses.length + 1 ? (
                 <Fragment>
                   <Text fontSize={"xl"} color="white">
