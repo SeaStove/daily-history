@@ -21,6 +21,7 @@ import {
   Input,
   IconButton,
   useToast,
+  Divider,
 } from "@chakra-ui/react";
 import {
   ArrowDownIcon,
@@ -30,7 +31,7 @@ import {
   RepeatIcon,
 } from "@chakra-ui/icons";
 
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback, Fragment } from "react";
 import axios from "axios";
 interface Event {
   year: string;
@@ -39,7 +40,16 @@ interface Event {
   event: string;
 }
 
-function EventBox({ event, ...rest }: { event: string }) {
+function EventBox({
+  event,
+  index,
+  endGameStats = false,
+  ...rest
+}: {
+  event: string;
+  index: number;
+  endGameStats?: boolean;
+}) {
   return (
     <Box
       maxW="sm"
@@ -51,8 +61,10 @@ function EventBox({ event, ...rest }: { event: string }) {
       color="gray.600"
       fontWeight={600}
       width="100%"
+      key={index}
       {...rest}
     >
+      {endGameStats ? <Fragment /> : `${index + 1} / 5: `}
       {event}
     </Box>
   );
@@ -68,7 +80,7 @@ function App() {
   const [yearToGuess, setYearToGuess] = useState<string | null>();
   const [year, setYear] = useState<string>(BASE_YEAR.toString());
   const [events, setEvents] = useState<Event[]>([]);
-  const [misses, setMisses] = useState<number[]>([]);
+  const [misses, setMisses] = useState<string[]>([]);
   const [gameOver, setGameOver] = useState(false);
   const [correctDigits, setCorrectDigits] = useState(BASE_CORRECT_DIGITS);
   const [won, setWon] = useState(false);
@@ -77,17 +89,16 @@ function App() {
 
   function onSubmit() {
     if (year) {
+      checkDigits();
       if (year === yearToGuess) {
         setWon(true);
         setGameOver(true);
       } else {
+        setMisses((misses) => {
+          return [...misses, year];
+        });
         if (misses.length >= 4) {
           setGameOver(true);
-        } else {
-          checkDigits();
-          setMisses((misses) => {
-            return [...misses, parseInt(year)];
-          });
         }
       }
     }
@@ -100,7 +111,7 @@ function App() {
     setEvents([]);
     getRandomYear();
     setYear(BASE_YEAR.toString());
-    setCorrectDigits([]);
+    setCorrectDigits(BASE_CORRECT_DIGITS);
     onClose();
   }
 
@@ -109,7 +120,6 @@ function App() {
       Math.floor(Math.random() * (MAX_YEAR - MIN_YEAR + 1)) + MIN_YEAR;
 
     console.log(randomYear);
-
     const response = await axios.get(
       `https://api.api-ninjas.com/v1/historicalevents?year=${randomYear}`,
       {
@@ -144,7 +154,6 @@ function App() {
   }, []);
 
   function paddedDigits(num: string) {
-    console.log(num);
     let formattedYear = num;
     const targetLength = 4;
     if (formattedYear.length < targetLength) {
@@ -165,7 +174,6 @@ function App() {
 
   const checkDigits = useCallback(() => {
     if (year && yearToGuess) {
-      console.log(year, yearToGuess);
       const guessDigits = paddedDigits(year);
       const answerDigits = paddedDigits(yearToGuess);
       let newCorrectDigits = [...correctDigits];
@@ -175,12 +183,13 @@ function App() {
           if (newCorrectDigits[index] === false) {
             newCorrectDigits[index] = true;
             toast.closeAll();
-            toast({
-              title: `${yearType[index]} is correct!`,
-              status: "success",
-              duration: 1000,
-              isClosable: true,
-            });
+            if (year !== yearToGuess)
+              toast({
+                title: `${yearType[index]} is correct!`,
+                status: "success",
+                duration: 1000,
+                isClosable: true,
+              });
           }
         } else {
           break;
@@ -202,14 +211,24 @@ function App() {
           <ModalBody>
             <VStack>
               <Heading color="white">The year was {yearToGuess}</Heading>
-              <Text fontSize={"xl"} color="white">
-                Some other events from that year...
-              </Text>
-              {events
-                .slice(misses.length + 1, events.length)
-                .map((event, index) => (
-                  <EventBox event={event.event} key={index} />
-                ))}
+              {events.length > misses.length + 1 ? (
+                <Fragment>
+                  <Text fontSize={"xl"} color="white">
+                    Some other events from that year...
+                  </Text>
+                  {events
+                    .slice(misses.length + 1, events.length)
+                    .map((event, index) => (
+                      <EventBox
+                        event={event.event}
+                        index={index}
+                        key={index}
+                        endGameStats
+                      />
+                    ))}
+                </Fragment>
+              ) : null}
+
               <Link
                 href={`https://en.wikipedia.org/wiki/AD_${yearToGuess}`}
                 textDecoration={"underline"}
@@ -253,26 +272,22 @@ function App() {
       >
         <Center>
           {events.length > 0 ? (
-            <VStack w="500px" my="5rem">
-              {events.slice(0, misses.length + 1).map((event: Event, index) => (
-                <EventBox event={event.event} key={index} />
-              ))}
+            <VStack w="500px">
               <Heading
                 color="white"
-                py="2rem"
                 position={"sticky"}
                 bg="brand.100"
                 textAlign={"center"}
               >
-                Which year did these events happen? {misses.length + 1} / 5
+                Which year did these events happen?
               </Heading>
-              <Text fontSize="2xl">
+              <Flex alignItems={"center"} fontSize="2xl">
                 {[...Array(4)].map((_, index) => {
                   return correctDigits[index] && yearToGuess
                     ? yearToGuess[index]
                     : "X";
                 })}
-              </Text>
+              </Flex>
               <form
                 onSubmit={(event) => {
                   event.preventDefault();
@@ -312,7 +327,11 @@ function App() {
                       bg="brand.400"
                       color="white"
                       ml="1rem"
-                      disabled={events.length === 0 || !year}
+                      isDisabled={
+                        events.length === 0 ||
+                        !year ||
+                        misses.indexOf(year) > -1
+                      }
                       type="submit"
                     >
                       Guess
@@ -320,6 +339,40 @@ function App() {
                   </Flex>
                 )}
               </form>
+              <Divider my="2rem" />
+              {events
+                .slice(0, Math.min(misses.length + 1, 5))
+                .reverse()
+                .map((event: Event, index) => {
+                  const maxIndex = Math.min(misses.length, 4);
+                  index = maxIndex - index;
+
+                  return (
+                    <Fragment key={index}>
+                      <Text key={`${index}-text`}>
+                        {yearToGuess &&
+                        maxIndex > 0 &&
+                        (index !== maxIndex || gameOver)
+                          ? `You guessed ${
+                              index == maxIndex && won ? year : misses[index]
+                            }. ${
+                              index == maxIndex && won
+                                ? "You won!"
+                                : parseInt(misses[index]) >
+                                  parseInt(yearToGuess)
+                                ? "Too recent."
+                                : "Too old."
+                            }`
+                          : ``}
+                      </Text>
+                      <EventBox
+                        event={event.event}
+                        index={index}
+                        key={`${index}-event`}
+                      />
+                    </Fragment>
+                  );
+                })}
             </VStack>
           ) : (
             <AbsoluteCenter>
