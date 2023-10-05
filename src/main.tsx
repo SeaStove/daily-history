@@ -1,7 +1,7 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
-import App from "./Pages/App.tsx";
-import DailyHistory from "./Pages/DailyHistory.tsx";
+import App from "./app/App.tsx";
+import DailyHistory from "./features/history/DailyHistory.tsx";
 import "./index.css";
 import {
   ChakraProvider,
@@ -9,7 +9,7 @@ import {
   extendTheme,
 } from "@chakra-ui/react";
 import { createHashRouter, RouterProvider } from "react-router-dom";
-import ErrorPage from "./Pages/ErrorPage.tsx";
+import ErrorPage from "./features/ErrorPage.tsx";
 
 const router = createHashRouter([
   {
