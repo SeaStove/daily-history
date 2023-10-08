@@ -3,6 +3,11 @@
   "version": "1.0.0",
   "description": "",
   "main": "CreateDailyHistoryGames.js",
+  "eslintConfig": {
+    "globals": {
+      "process": true
+    }
+  },
   "scripts": {
     "create-games": "node CreateDailyHistoryGames.js"
   },

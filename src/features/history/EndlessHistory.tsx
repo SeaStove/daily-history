@@ -72,8 +72,15 @@ function EventBox({
   );
 }
 
-function DailyHistory() {
-  useDocumentTitle("Daily History");
+const yearType: { [key: number]: string } = {
+  0: "Millenium",
+  1: "Century",
+  2: "Decade",
+  3: "Digit",
+};
+
+function Endless() {
+  useDocumentTitle("Endless History");
   const MIN_YEAR = 1;
   const MAX_YEAR = 2023;
   // const BASEYEAR = Math.floor((MAXYEAR + MINYEAR) / 2);
@@ -118,11 +125,10 @@ function DailyHistory() {
     onClose();
   }
 
-  async function getRandomYear() {
+  const getRandomYear = useCallback(async () => {
     const randomYear =
       Math.floor(Math.random() * (MAX_YEAR - MIN_YEAR + 1)) + MIN_YEAR;
 
-    console.log(randomYear);
     const response = await axios.get(
       `https://api.api-ninjas.com/v1/historicalevents?year=${randomYear}`,
       {
@@ -140,13 +146,13 @@ function DailyHistory() {
     } else {
       console.error("Couldn't retrieve data from API.");
     }
-  }
+  }, []);
 
   useEffect(() => {
     if (gameOver) {
       onOpen();
     }
-  }, [gameOver]);
+  }, [gameOver, onOpen]);
 
   const gotYearRef = useRef(false);
   useEffect(() => {
@@ -154,7 +160,7 @@ function DailyHistory() {
       getRandomYear();
       gotYearRef.current = true;
     }
-  }, []);
+  }, [getRandomYear]);
 
   function paddedDigits(num: string) {
     let formattedYear = num;
@@ -168,18 +174,11 @@ function DailyHistory() {
     return formattedYear.split("").map(Number);
   }
 
-  const yearType: { [key: number]: string } = {
-    0: "Millenium",
-    1: "Century",
-    2: "Decade",
-    3: "Digit",
-  };
-
   const checkDigits = useCallback(() => {
     if (year && yearToGuess) {
       const guessDigits = paddedDigits(year);
       const answerDigits = paddedDigits(yearToGuess);
-      let newCorrectDigits = [...correctDigits];
+      const newCorrectDigits = [...correctDigits];
 
       for (let index = 0; index < 4; index++) {
         if (guessDigits[index] === answerDigits[index]) {
@@ -200,7 +199,7 @@ function DailyHistory() {
       }
       setCorrectDigits(newCorrectDigits);
     }
-  }, [year, yearToGuess]);
+  }, [correctDigits, toast, year, yearToGuess]);
 
   return (
     <>
@@ -438,4 +437,4 @@ function DailyHistory() {
   }
 }
 
-export default DailyHistory;
+export default Endless;

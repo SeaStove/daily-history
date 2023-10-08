@@ -1,7 +1,7 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./app/App.tsx";
-import DailyHistory from "./features/history/DailyHistory.tsx";
+import EndlessHistory from "./features/history/EndlessHistory.tsx";
 import "./index.css";
 import {
   ChakraProvider,
@@ -18,8 +18,8 @@ const router = createHashRouter([
     errorElement: <ErrorPage />,
   },
   {
-    path: "/daily-history",
-    element: <DailyHistory />,
+    path: "/endless-history",
+    element: <EndlessHistory />,
     errorElement: <ErrorPage />,
   },
 ]);

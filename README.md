@@ -1,1 +1,1 @@
-Daily / Trivia game for historical events
+Collection of all games created by Seastove

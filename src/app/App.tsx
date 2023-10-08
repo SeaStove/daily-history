@@ -14,9 +14,9 @@ function App() {
           p={{ base: "2rem", md: "4rem" }}
           borderRadius={"8px"}
           fontSize={{ base: "2rem", md: "4rem" }}
-          href="/#/daily-history"
+          href="/#/endless-history"
         >
-          Daily History Game
+          Endless History Game
         </Link>
       </VStack>
     </Center>

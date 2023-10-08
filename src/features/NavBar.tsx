@@ -12,12 +12,12 @@ const NavBar = () => {
     >
       <Box gridColumn="1">
         <Link href="/" variant="outline">
-          <Icon as={MdHomeFilled} h={6} w={6} />
+          <Icon as={MdHomeFilled} h="2rem" w="2rem" />
         </Link>
       </Box>
       <Box gridColumn="2">
         <Center>
-          <Heading textDecoration={"underline"}>Daily History</Heading>
+          <Heading textDecoration={"underline"}>Endless History</Heading>
         </Center>
       </Box>
       <Box gridColumn="3"></Box>
