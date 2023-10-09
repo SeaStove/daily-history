@@ -10,6 +10,8 @@ import {
 } from "@chakra-ui/react";
 import { createHashRouter, RouterProvider } from "react-router-dom";
 import ErrorPage from "./features/ErrorPage.tsx";
+import { store } from "./app/store";
+import { Provider as ReduxProvider } from "react-redux";
 
 const router = createHashRouter([
   {
@@ -50,7 +52,9 @@ const theme = extendTheme({ colors, components, styles });
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <ChakraProvider theme={theme}>
-      <RouterProvider router={router} />
+      <ReduxProvider store={store}>
+        <RouterProvider router={router} />
+      </ReduxProvider>
     </ChakraProvider>
   </React.StrictMode>
 );

@@ -31,16 +31,26 @@ import {
   RepeatIcon,
 } from "@chakra-ui/icons";
 
-import { useEffect, useRef, useState, useCallback, Fragment } from "react";
+import { useEffect, useRef, useCallback, Fragment } from "react";
 import axios from "axios";
 import useDocumentTitle from "../../common/hooks/useDocumentTitle";
 import NavBar from "../NavBar";
-interface Event {
-  year: string;
-  month: string;
-  day: string;
-  event: string;
-}
+import { useAppSelector } from "app/hooks";
+import {
+  setYearToGuess,
+  setYear,
+  setEvents,
+  addMiss,
+  setGameOver,
+  setCorrectDigits,
+  setWon,
+  MIN_YEAR,
+  MAX_YEAR,
+  increaseYear,
+  decreaseYear,
+  Event,
+  yearType,
+} from "./historySlice";
 
 function EventBox({
   event,
@@ -72,29 +82,27 @@ function EventBox({
   );
 }
 
-const yearType: { [key: number]: string } = {
-  0: "Millenium",
-  1: "Century",
-  2: "Decade",
-  3: "Digit",
-};
-
 function Endless() {
   useDocumentTitle("Endless History");
-  const MIN_YEAR = 1;
-  const MAX_YEAR = 2023;
-  // const BASEYEAR = Math.floor((MAXYEAR + MINYEAR) / 2);
-  const BASE_YEAR = 2023;
-  const BASE_CORRECT_DIGITS = [false, false, false, false];
+
   // const BASEYEAR = "";
-  const [yearToGuess, setYearToGuess] = useState<string | null>();
-  const [year, setYear] = useState<string>(BASE_YEAR.toString());
-  const [events, setEvents] = useState<Event[]>([]);
-  const [misses, setMisses] = useState<string[]>([]);
-  const [gameOver, setGameOver] = useState(false);
-  const [correctDigits, setCorrectDigits] = useState(BASE_CORRECT_DIGITS);
-  const [won, setWon] = useState(false);
+  // const [yearToGuess, setYearToGuess] = useState<string | null>();
+  // const [year, setYear] = useState<string>(BASE_YEAR.toString());
+  // const [events, setEvents] = useState<Event[]>([]);
+  // const [misses, setMisses] = useState<string[]>([]);
+  // const [gameOver, setGameOver] = useState(false);
+  // const [correctDigits, setCorrectDigits] = useState(BASE_CORRECT_DIGITS);
+  // const [won, setWon] = useState(false);
   const { onOpen, onClose, isOpen } = useDisclosure();
+  const yearToGuess = useAppSelector((state) => state.history.yearToGuess);
+  const year = useAppSelector((state) => state.history.year);
+  const events = useAppSelector((state) => state.history.events);
+  const misses = useAppSelector((state) => state.history.misses);
+  const gameOver = useAppSelector((state) => state.history.gameOver);
+  const correctDigits = useAppSelector((state) => state.history.correctDigits);
+  const won = useAppSelector((state) => state.history.won);
+
+  // const dispatch = useAppDispatch();
   const toast = useToast();
 
   function onSubmit() {
@@ -104,9 +112,7 @@ function Endless() {
         setWon(true);
         setGameOver(true);
       } else {
-        setMisses((misses) => {
-          return [...misses, year];
-        });
+        addMiss(year);
         if (misses.length >= 4) {
           setGameOver(true);
         }
@@ -115,13 +121,7 @@ function Endless() {
   }
 
   function newGame() {
-    setMisses([]);
-    setWon(false);
-    setGameOver(false);
-    setEvents([]);
     getRandomYear();
-    setYear(BASE_YEAR.toString());
-    setCorrectDigits(BASE_CORRECT_DIGITS);
     onClose();
   }
 
@@ -138,6 +138,7 @@ function Endless() {
 
     if (response?.data) {
       if (response.data.length > 5) {
+        console.log(response.data);
         setYearToGuess(randomYear.toString());
         setEvents(response.data);
       } else {
@@ -225,7 +226,7 @@ function Endless() {
                   </Text>
                   {events
                     .slice(misses.length + 1, events.length)
-                    .map((event, index) => (
+                    .map((event: Event, index: number) => (
                       <EventBox
                         event={event.event}
                         index={index}
@@ -350,7 +351,7 @@ function Endless() {
               {events
                 .slice(0, Math.min(misses.length + 1, 5))
                 .reverse()
-                .map((event: Event, index) => {
+                .map((event: Event, index: number) => {
                   const maxIndex = Math.min(misses.length, 4);
                   index = maxIndex - index;
 
@@ -396,12 +397,7 @@ function Endless() {
       <HStack>
         <IconButton
           aria-label="Decrease Year"
-          onClick={() => {
-            setYear((year) => {
-              const updatedYear = parseInt(year) - 1;
-              return updatedYear.toString();
-            });
-          }}
+          onClick={() => increaseYear()}
           icon={<ArrowDownIcon />}
           isDisabled={parseInt(year) <= MIN_YEAR}
         />
@@ -424,12 +420,7 @@ function Endless() {
         <IconButton
           aria-label="Increase Year"
           icon={<ArrowUpIcon />}
-          onClick={() => {
-            setYear((year) => {
-              const updatedYear = parseInt(year) + 1;
-              return updatedYear.toString();
-            });
-          }}
+          onClick={() => decreaseYear()}
           isDisabled={parseInt(year) >= MAX_YEAR}
         />
       </HStack>
