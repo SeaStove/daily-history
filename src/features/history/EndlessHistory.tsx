@@ -86,22 +86,9 @@ function EventBox({
 function Endless() {
   useDocumentTitle("Endless History");
 
-  // const BASEYEAR = "";
-  // const [yearToGuess, setYearToGuess] = useState<string | null>();
-  // const [year, setYear] = useState<string>(BASE_YEAR.toString());
-  // const [events, setEvents] = useState<Event[]>([]);
-  // const [misses, setMisses] = useState<string[]>([]);
-  // const [gameOver, setGameOver] = useState(false);
-  // const [correctDigits, setCorrectDigits] = useState(BASE_CORRECT_DIGITS);
-  // const [won, setWon] = useState(false);
   const { onOpen, onClose, isOpen } = useDisclosure();
-  const yearToGuess = useAppSelector((state) => state.history.yearToGuess);
-  const year = useAppSelector((state) => state.history.year);
-  const events = useAppSelector((state) => state.history.events);
-  const misses = useAppSelector((state) => state.history.misses);
-  const gameOver = useAppSelector((state) => state.history.gameOver);
-  const correctDigits = useAppSelector((state) => state.history.correctDigits);
-  const won = useAppSelector((state) => state.history.won);
+  const { yearToGuess, year, events, misses, gameOver, correctDigits, won } =
+    useAppSelector((state) => state.history);
 
   const dispatch = useAppDispatch();
   const toast = useToast();
@@ -111,17 +98,18 @@ function Endless() {
       checkDigits();
       if (year === yearToGuess) {
         dispatch(setWon());
+        dispatch(setGameOver(true));
       } else {
-        addMiss(year);
+        dispatch(addMiss(year));
         if (misses.length >= 4) {
-          setGameOver(true);
+          dispatch(setGameOver(true));
         }
       }
     }
   }
 
   function newGame() {
-    resetState();
+    dispatch(resetState());
     getRandomYear();
     onClose();
   }
@@ -139,7 +127,6 @@ function Endless() {
 
     if (response?.data) {
       if (response.data.length > 5) {
-        console.log(response.data);
         dispatch(setYearToGuess(randomYear.toString()));
         dispatch(setEvents(response.data));
       } else {
@@ -398,7 +385,7 @@ function Endless() {
       <HStack>
         <IconButton
           aria-label="Decrease Year"
-          onClick={() => increaseYear()}
+          onClick={() => dispatch(decreaseYear())}
           icon={<ArrowDownIcon />}
           isDisabled={parseInt(year) <= MIN_YEAR}
         />
@@ -412,7 +399,8 @@ function Endless() {
           max={MAX_YEAR}
           htmlSize={4}
           onChange={(event) => {
-            if (event.target.value.length <= 4) setYear(event.target.value);
+            if (event.target.value.length <= 4)
+              dispatch(setYear(event.target.value));
           }}
           pattern="[0-9]*"
           inputMode="numeric"
@@ -421,7 +409,7 @@ function Endless() {
         <IconButton
           aria-label="Increase Year"
           icon={<ArrowUpIcon />}
-          onClick={() => decreaseYear()}
+          onClick={() => dispatch(increaseYear())}
           isDisabled={parseInt(year) >= MAX_YEAR}
         />
       </HStack>

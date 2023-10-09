@@ -68,9 +68,7 @@ export const historySlice = createSlice({
     addMiss: (state, action: PayloadAction<string>) => {
       state.misses = [...state.misses, action.payload];
     },
-    resetState: (state) => {
-      state = { ...initialState };
-    },
+    resetState: () => initialState,
     setGameOver: (state, action: PayloadAction<boolean>) => {
       state.gameOver = action.payload;
     },
@@ -79,7 +77,6 @@ export const historySlice = createSlice({
     },
     setWon: (state) => {
       state.won = true;
-      state.gameOver = true;
     },
   },
 });
