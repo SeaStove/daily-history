@@ -77,8 +77,9 @@ export const historySlice = createSlice({
     setCorrectDigits: (state, action: PayloadAction<boolean[]>) => {
       state.correctDigits = action.payload;
     },
-    setWon: (state, action: PayloadAction<boolean>) => {
-      state.won = action.payload;
+    setWon: (state) => {
+      state.won = true;
+      state.gameOver = true;
     },
   },
 });
@@ -89,6 +90,7 @@ export const {
   increaseYear,
   decreaseYear,
   setEvents,
+  resetState,
   addMiss,
   setGameOver,
   setCorrectDigits,

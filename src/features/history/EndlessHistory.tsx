@@ -35,7 +35,7 @@ import { useEffect, useRef, useCallback, Fragment } from "react";
 import axios from "axios";
 import useDocumentTitle from "../../common/hooks/useDocumentTitle";
 import NavBar from "../NavBar";
-import { useAppSelector } from "app/hooks";
+import { useAppSelector, useAppDispatch } from "app/hooks";
 import {
   setYearToGuess,
   setYear,
@@ -50,6 +50,7 @@ import {
   decreaseYear,
   Event,
   yearType,
+  resetState,
 } from "./historySlice";
 
 function EventBox({
@@ -102,15 +103,14 @@ function Endless() {
   const correctDigits = useAppSelector((state) => state.history.correctDigits);
   const won = useAppSelector((state) => state.history.won);
 
-  // const dispatch = useAppDispatch();
+  const dispatch = useAppDispatch();
   const toast = useToast();
 
   function onSubmit() {
     if (year) {
       checkDigits();
       if (year === yearToGuess) {
-        setWon(true);
-        setGameOver(true);
+        dispatch(setWon());
       } else {
         addMiss(year);
         if (misses.length >= 4) {
@@ -121,6 +121,7 @@ function Endless() {
   }
 
   function newGame() {
+    resetState();
     getRandomYear();
     onClose();
   }
@@ -139,15 +140,15 @@ function Endless() {
     if (response?.data) {
       if (response.data.length > 5) {
         console.log(response.data);
-        setYearToGuess(randomYear.toString());
-        setEvents(response.data);
+        dispatch(setYearToGuess(randomYear.toString()));
+        dispatch(setEvents(response.data));
       } else {
         getRandomYear();
       }
     } else {
       console.error("Couldn't retrieve data from API.");
     }
-  }, []);
+  }, [dispatch]);
 
   useEffect(() => {
     if (gameOver) {
@@ -198,9 +199,9 @@ function Endless() {
           break;
         }
       }
-      setCorrectDigits(newCorrectDigits);
+      dispatch(setCorrectDigits(newCorrectDigits));
     }
-  }, [correctDigits, toast, year, yearToGuess]);
+  }, [correctDigits, dispatch, toast, year, yearToGuess]);
 
   return (
     <>
