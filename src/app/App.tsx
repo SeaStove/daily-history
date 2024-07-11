@@ -1,4 +1,4 @@
-import { Center, Link, VStack, Image, Text, Flex, Box } from "@chakra-ui/react";
+import { Center, Link, VStack, Text, Flex, Box } from "@chakra-ui/react";
 import useDocumentTitle from "../common/hooks/useDocumentTitle";
 
 function App() {
@@ -17,9 +17,9 @@ function App() {
           fontFamily="HONK"
         >
           <Flex alignItems={"center"}>
-            <Image src="eruption.png" alt="Volcano" w="64px" h="64px" />
+            {/* <Image src="eruption.png" alt="Volcano" w="64px" h="64px" />   */}
             Daily Eruption
-            <Image src="eruption.png" alt="Volcano" w="64px" h="64px" />
+            {/* <Image src="eruption.png" alt="Volcano" w="64px" h="64px" /> */}
           </Flex>
         </Link>
         <Link
