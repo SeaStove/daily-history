@@ -13,12 +13,12 @@ function App() {
           p={{ base: "2rem", md: "4rem" }}
           borderRadius={"8px"}
           fontSize={{ base: "2rem", md: "4rem" }}
-          href="http://www.dailyeruption.com/"
+          href="http://www.eruptle.app/"
           fontFamily="HONK"
         >
           <Flex alignItems={"center"}>
             {/* <Image src="eruption.png" alt="Volcano" w="64px" h="64px" />   */}
-            Daily Eruption
+            Eruptle
             {/* <Image src="eruption.png" alt="Volcano" w="64px" h="64px" /> */}
           </Flex>
         </Link>
