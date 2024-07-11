@@ -4,6 +4,14 @@
     box-sizing: border-box;
 }
 
+@font-face {
+    font-family: 'HONK';
+    src: url('./assets/HONK.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+  
+  }
+
 body {
     overflow: hidden;
     width: "100%";
