@@ -1,13 +1,4 @@
-import {
-  Heading,
-  Center,
-  Link,
-  VStack,
-  Image,
-  Text,
-  Flex,
-  Box,
-} from "@chakra-ui/react";
+import { Center, Link, VStack, Image, Text, Flex, Box } from "@chakra-ui/react";
 import useDocumentTitle from "../common/hooks/useDocumentTitle";
 
 function App() {
